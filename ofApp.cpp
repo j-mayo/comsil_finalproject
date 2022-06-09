@@ -460,7 +460,24 @@ bool ofApp::sound_load() {
 	is_intro = 1;
 	white_sound = new ofSoundPlayer[num_of_white];
 	black_sound = new ofSoundPlayer[num_of_black];
+	char extension[] = ".mp3";
+	char* temps = (char*)malloc(sizeof(int) * 20);
+	
+	for (int i = 0; i < num_of_white; i++) {
+		strcpy(temps, "sounds/");
+		strcat(temps, white_file_name[i]);
+		strcat(temps, extension);
+		white_sound[i].load(temps);
+		//printf("%s\n", temps);
+	}
 
-	white_sound[F2].load("sounds/sample.mp3");
+	for (int i = 0; i < num_of_black; i++) {
+		strcpy(temps, "sounds/");
+		strcat(temps, black_file_name[i]);
+		strcat(temps, extension);
+		black_sound[i].load(temps);
+		//printf("%s\n", temps);
+	}
+	//white_sound[F2].load("sounds/sample.mp3");
 	return true;
 }
