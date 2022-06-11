@@ -132,8 +132,11 @@ void ofApp::update(){
 //--------------------------------------------------------------
 void ofApp::draw(){
 	
-	if (perfect_timing) perfect_timing_draw(); // perfect timing이 진행 중인 경우, 판정을 위해 피아노보다 먼저 그려준다.
-
+	
+	if (perfect_timing && !is_gameover) perfect_timing_draw(); 
+	// perfect timing이 진행 중인 경우, 판정을 위해 피아노보다 먼저 그려준다.
+	// piano의 사각형 범위는 OfFill인 상태로 그려지므로, 음표들이 피아노에 흡수되는 효과를 낼 수 있다.
+	
 	//display.draw(ofGetWidth() / 6, 40, ofGetWidth() * 2 / 3, ofGetHeight() / 2);
 	piano_draw();
 	// 먼저 피아노를 그려야 한다.
@@ -146,7 +149,9 @@ void ofApp::draw(){
 	// 글자는 항상 마지막에 draw되어야 사용자가 볼 수 있다.
 	
 	
-
+	if (is_gameover == 1) {
+		perfect_timing_gameover_draw();
+	}
 }
 
 //--------------------------------------------------------------
@@ -173,6 +178,14 @@ void ofApp::keyPressed(int key){
 	}
 	*/
 
+	if (is_gameover == 1) { // 게임오버 시, esc를 제외한 아무 키나 누른다면 게임을 처음부터 시작!
+		if (key != VK_ESCAPE) {
+			//is_gameover = 0;
+			gameover.stop();
+			perfect_timing_init(max_num_of_fail / 15); // 게임 다시 시작, 게임오버 당시의 레벨로 다시 시작
+			return;
+		}
+	}
 	if (play_piano == 1) {
 		if (key == ' ') { // sustain pedal이 눌린 경우, 현재 눌린 음을 계속 지속해야 한다. 이를 위해 따로 표시한다.
 			sustain_pedal = 1;
@@ -500,15 +513,14 @@ void ofApp::piano_draw() {
 	ofNoFill();
 	ofDrawRectangle(x1, y1, x2 - x1 - 10, y2 - y1); // 모양 맞추기 위한 -10
 	float tempx = x1 + white_x;
-	// 흰 건반 그림
+	// 흰 건반 그림 - loop 사용
 	for (int i = 0; i < num_of_white - 1; i++) {
 		ofDrawLine(tempx, y1, tempx, y2);
 		tempx += white_x;
 	}
-	// 검은 건반 그림
+	// 검은 건반 그림 - loop 사용
 	tempx = x1 + white_x * 3 / 4;
 	ofFill();
-	
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 7; j++) {
 			if (j == 3 || j == 6) {
@@ -544,7 +556,7 @@ void ofApp::activatedkey_draw() {
 	if (sustain_pedal) ofDrawRectangle(ofGetWidth() / 2 - 2 * white_x, y2 + 25, 4 * white_x, 50); // sustain pedal의 경우 사각형을 표시했다ㅏ.
 }
 
-void ofApp::print_window() {
+void ofApp::print_window() { // string을 화면에 띄워주는 함수
 	char str[200]; // myfont1에서 화면에 문장을 나타내기 위한 str 버퍼이다
 
 	ofSetColor(ofColor::darkGray);
@@ -571,8 +583,9 @@ void ofApp::print_window() {
 
 	if (perfect_timing > 0) {
 		ofSetColor(ofColor::forestGreen);
-		sprintf(str, "PERFECT: %d / GOOD; %d / FAIL: %d", num_of_perfect, num_of_good, num_of_fail);
-		myFont2.drawString(str, ofGetWidth() / 2 + 4 * white_x, ofGetHeight() - 50);
+		sprintf(str, "PERFECT: %d / GOOD; %d / FAIL: %d\nCURRENT HP: %d", num_of_perfect, num_of_good, num_of_fail, max_num_of_fail - num_of_fail);
+		// 현재 기록과 남은 hp를 화면에 출력해준다.
+		myFont2.drawString(str, ofGetWidth() / 2 + 4 * white_x, ofGetHeight() - 70);
 	}
 }
 void ofApp::sound_load() {
@@ -608,6 +621,8 @@ void ofApp::sound_load() {
 		//printf("%s\n", temps);
 	}
 	//white_sound[F2].load("sounds/sample.mp3");
+	gamestart.load("sounds/gamestart.ogg");
+	gameover.load("sounds/gameover.mp3"); 
 }
 
 void ofApp::image_load() {
@@ -618,20 +633,27 @@ void ofApp::image_load() {
 }
 
 void ofApp::perfect_timing_init(int level) {
+	intro.stop(); // intro가 재생 중이라면 멈춰준다.
+	gamestart.play();
 	play_piano = 0;
 	perfect_timing = 1;
 	num_of_perfect = 0;
 	num_of_good = 0;
 	num_of_fail = 0;
-	if (!score_front) {
+	max_num_of_fail = level * 15;
+	
+	if (!score_front) { // init이 처음 실행될 때는 이 if문이 실행된다.
 		score_front = new Note; // dummy note
 		score_rear = new Note; // dummy note
 		score_front->next = score_rear;
 		score_rear->prev = score_front;
 		
 	}
-	for (int i=0; i<level; i++) create_note(); // level에 따라 떨어지는 음의 개수가 늘어남.
-
+	if (is_gameover == 0) { // 게임오버 후 시작한 경우는 난이도가 그대로이므로, 음표의 개수가 변경되지 않으니 그대로 있어도 된다.
+		// is_gameover가 0이라는 뜻은 gameover 후 시작하지 않았다는 뜻이니 음표를 생성해준다.
+		for (int i = 0; i < level; i++) create_note(); // level에 따라 떨어지는 음의 개수가 늘어남.
+	}
+	is_gameover = 0;
 }
 
 void ofApp::perfect_timing_end() {
@@ -652,6 +674,39 @@ void ofApp::perfect_timing_end() {
 		}
 	}
 	perfect_timing = 0;
+}
+
+void ofApp::perfect_timing_gameover() {
+	is_gameover = 1;
+	//perfect_timing_end();
+	
+	// 게임이 종료될 때 눌려있던 건반들을 떼 줌.
+	for (int i = 0; i < num_of_white; i++) {
+		white_keypressedflag[i] = 0;
+	}
+	for (int j = 0; j < num_of_black; j++) {
+		black_keypressedflag[j] = 0;
+	}
+	gameover.play();
+}
+
+void ofApp::perfect_timing_gameover_draw() {
+
+	char str[200]; // 버퍼
+	ofFill();
+	ofSetColor(ofColor::white);
+	ofDrawRectangle(ofGetWidth() / 4, ofGetHeight() / 4, ofGetWidth() / 2, ofGetHeight() / 2);
+	ofNoFill();
+	ofSetColor(ofColor::black);
+	ofDrawRectangle(ofGetWidth() / 4, ofGetHeight() / 4, ofGetWidth() / 2, ofGetHeight() / 2); // 게임오버 결과창 그릴 흰 네모박스
+	
+	sprintf(str, "Game-Ooooooover!");
+	myFont2.drawString(str, ofGetWidth() / 2 - 125, ofGetHeight() * 3 / 8);
+	sprintf(str, "Result: PERFECT: %d GOOD: %d FAIL: %d", num_of_perfect, num_of_good, num_of_fail);
+	myFont2.drawString(str, ofGetWidth() / 2 - 250, ofGetHeight() * 3 / 8 + 40);
+	sprintf(str, "Press any key but ESC to continue");
+	myFont2.drawString(str, ofGetWidth() / 2 - 225, ofGetHeight() * 3 / 8 + 80);
+
 }
 
 void ofApp::create_note() {
@@ -693,7 +748,7 @@ void ofApp::update_note() {
 		if (temp->y > y1 + (temp->speed * 6)) { //y1이 현재 속력 기준으로 6프레임 후 이동거리보다 밑에 있을 시 그 노트는 사라진다.
 			delnote = temp;
 			if (temp->is_calculated == 0) num_of_fail++; // 무시된 음표의 경우 fail로 결정
-			create_note();
+			create_note(); // 사라진 노트의 자리를 채울 새 노트를 만들어서 리스트에 연결
 			temp = temp->next;
 			if (delnote->prev) delnote->prev->next = temp;
 			temp->prev = delnote->prev;
@@ -701,6 +756,11 @@ void ofApp::update_note() {
 			//cout << temp->x << endl;
 		}
 		else temp = temp->next;
+
+		// 게임오버 조건
+		if (num_of_fail >= max_num_of_fail) {
+			perfect_timing_gameover(); // max_num_of_fail보다 많이 틀리면 gameover
+		}
 	}
 
 }
@@ -710,6 +770,7 @@ void ofApp::perfect_timing_draw() {
 	//cout << score_front->x << " / " << score_front->y << endl;
 	//cout << score_front->key << " len: " << score_front->len << endl;
 	//ofSetColor(ofColor::grey);
+
 	Note* temp = score_front->next;
 	for (temp; temp != score_rear; temp = temp->next) {
 		if (temp->key == 0) { //흰 건반일 때
@@ -748,7 +809,10 @@ void ofApp::calculate_timing(int key_type, int key_num) {
 				float perfect_range = (temp->speed + temp->acce) * 3;
 				float good_range = (temp->speed + 3 * temp->acce) * 6;
 				// y1은 흰 건반의 높이, 즉 음표의 판정 부분과 같다!
-				if (abs(temp->y + 50 - y1) < perfect_range) num_of_perfect++; // 50은 내려오는 음표 박스의 길이임.
+				if (abs(temp->y + 50 - y1) < perfect_range) {
+					num_of_perfect++; // 50은 내려오는 음표 박스의 길이임.
+					max_num_of_fail++; // perfect한 timing을 맞출 경우, HP가 1 증가!
+				}
 				else if (abs(temp->y + 50 - y1) < good_range) num_of_good++;
 				else num_of_fail++;
 				break; // 한 번에 하나씩만 처리해야.

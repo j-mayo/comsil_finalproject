@@ -66,6 +66,8 @@ class ofApp : public ofBaseApp{
 
 		void perfect_timing_init(int level);
 		void perfect_timing_end();
+		void perfect_timing_gameover();
+		void perfect_timing_gameover_draw();
 		void perfect_timing_draw();
 		void calculate_timing(int key_type, int key_num);
 
@@ -102,6 +104,7 @@ class ofApp : public ofBaseApp{
 		int is_intro; // intro 음이 loading되었는지 알려주는 변수. 1이면 로딩 된 것.
 		int play_piano; // play_piano mode인지 알려주는 변수. 1이면 play_piano인 것
 		int perfect_timing; // 현재 게임 중임을 나타내는 변수. 1이면 그런 것
+		int is_gameover; // 게임오버 여부를 알려주는 변수. 1이면 게임오버
 
 		// 건반
 		int num_of_white; // 흰 건반의 개수
@@ -135,6 +138,8 @@ class ofApp : public ofBaseApp{
 		ofSoundPlayer intro; // intro 음악을 담을 ofSoundPlayer 객체
 		ofSoundPlayer* white_sound; // 흰 건반의 음들을 담는 ofSoundPlayer의 배열
 		ofSoundPlayer* black_sound; // 검은 건반의 음들을 담는 ofSoundPlayer의 배열
+		ofSoundPlayer gamestart;
+		ofSoundPlayer gameover;
 
 		// 이미지
 		//ofImage note_4;
@@ -146,6 +151,7 @@ class ofApp : public ofBaseApp{
 		int num_of_perfect;
 		int num_of_good;
 		int num_of_fail;
+		int max_num_of_fail;
 		Note* score_front; // 음표들이 모이면 악보가 된다. 음표 연결 리스트의 시작 음표를 저장하는 포인터 변수.
 		Note* score_rear; // 음표들의 끝을 저장. 
 };
