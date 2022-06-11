@@ -29,9 +29,10 @@ public:
 	int x; // 건반 인덱스: 흰, 검은에 따라 달라진다.
 	float y; // 음표의 y좌표
 	short int len; // 음표 타입 = 4분음표, 8분음표, 16분음표 중 하나이다.
-	short int key; // 흰 건반, 검은 건반 중 하나에 배정된다.
+	short int key; // 흰 건반, 검은 건반 중 하나에 배정된다. 흰이 0
 	float speed; // 떨어질 속도.
 	float acce; // 가속도
+	short int is_calculated;
 	Note* prev;
 	Note* next;
 };
@@ -66,7 +67,7 @@ class ofApp : public ofBaseApp{
 		void perfect_timing_init(int level);
 		void perfect_timing_end();
 		void perfect_timing_draw();
-		void calculate_timing();
+		void calculate_timing(int key_type, int key_num);
 
 		void sound_load(); // 필요한 sound file들을 로딩해주는 역할
 

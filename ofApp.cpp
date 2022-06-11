@@ -47,7 +47,7 @@ void ofApp::setup(){
 	hPopup = menu->AddPopupMenu(hMenu, "Mode");
 	menu->AddPopupItem(hPopup, "Play Piano", false, false);
 	menu->AddPopupItem(hPopup, "Perfect timing!(easy)", false, false);
-	menu->AddPopupItem(hPopup, "Perfect timing!(normal)", false, false);
+	menu->AddPopupItem(hPopup, "Perfect timing!(hard)", false, false);
 	menu->AddPopupItem(hPopup, "Perfect timing!(comsil)", false, false);
 
 	// Mode ( if possible )
@@ -112,7 +112,7 @@ void ofApp::appMenuFunction(string title, bool bChecked) {
 		if (perfect_timing > 0) perfect_timing_end();
 		perfect_timing_init(1);
 	}
-	if (title == "Perfect timing!(normal)") {
+	if (title == "Perfect timing!(hard)") {
 		if (perfect_timing > 0) perfect_timing_end();
 		perfect_timing_init(2);
 	}
@@ -195,7 +195,7 @@ void ofApp::keyPressed(int key){
 		}
 
 		for (int i = 0; i < num_of_white; i++) {
-			// 음 재생의 조건은 현재 play_piano mode이고, 입력으로 들어온 key가 눌리지 않은 상태라면 음을 재생한다.
+			// 입력으로 들어온 key가 눌리지 않은 상태라면 음을 재생한다.
 
 			//if (play_piano && key == white_keyboard[i] && white_keypressedflag[i] != 1) {
 			if (key == white_keyboard[i]) {
@@ -232,8 +232,28 @@ void ofApp::keyPressed(int key){
 		}
 	}
 	
-	if (perfect_timing > 0) {
-		
+	if (perfect_timing > 0) { // perfect timing 게임에선 sustain pedal을 활성화하지 않는다.
+		for (int i = 0; i < num_of_white; i++) {
+			if (key == white_keyboard[i]) {
+				if (white_keypressedflag[i] != 1) {
+					white_keypressedflag[i] = 1; 
+					white_sound[i].play();
+				}
+				calculate_timing(0, i); // 역시 위와 같이 재생은 하고, 현재 음표들이 내려오는 것과 비교해준다.
+
+			}
+		}
+
+		for (int i = 0; i < num_of_black; i++) {
+			if (i == 3 || i == 6 || i == 10 || i == 13 || i == 17) continue;
+			if (key == black_keyboard[i]) {
+				if (black_keypressedflag[i] != 1) { 
+					black_keypressedflag[i] = 1;
+					black_sound[i].play();
+				}
+				calculate_timing(1, i); // 역시 위와 같이 재생은 하고, 현재 음표들이 내려오는 것과 비교해준다.
+			}
+		}
 
 	}
 
@@ -282,6 +302,27 @@ void ofApp::keyReleased(int key){
 				}
 			}
 		}
+	}
+
+	if (perfect_timing > 0) { // perfect timing 게임에선 sustain pedal을 활성화하지 않는다.
+		// 여기선 음을 바로 끊지 않고, 그냥 keypressedflag만 0으로 설정해 그림은 안 그려지되, 음이 자연스럽게 끊기도록 한다.
+		for (int i = 0; i < num_of_white; i++) {
+			if (key == white_keyboard[i]) {
+				if (white_keypressedflag[i] == 1) {
+					white_keypressedflag[i] = 0;
+				}
+			}
+		}
+
+		for (int i = 0; i < num_of_black; i++) {
+			if (i == 3 || i == 6 || i == 10 || i == 13 || i == 17) continue;
+			if (key == black_keyboard[i]) {
+				if (black_keypressedflag[i] == 1) {
+					black_keypressedflag[i] = 0;
+				}
+			}
+		}
+
 	}
 	
 }
@@ -391,12 +432,18 @@ void ofApp::free_Memory() {
 	delete[] black_sound;
 	delete[] notes;
 	if (score_front) {
-		Note* temp = score_front;
-		for (; temp; ) {
-			score_front = temp;
+		Note* temp = score_front->next;
+		Note* delnote;
+		for (; temp != score_rear; ) {
+			delnote = temp;
 			temp = temp->next;
-			delete score_front;
+			delnote->prev->next = temp;
+			temp->prev = delnote->prev;
+			delete delnote;
 		}
+
+		delete score_front;
+		delete score_rear;
 	}
 }
 
@@ -447,7 +494,8 @@ void ofApp::piano_draw() {
 	ofSetRectMode(OF_RECTMODE_CORNER);
 	ofSetLineWidth(5);
 	// 전체적인 틀 사각형 그림
-	ofDrawRectangle(x1, y1, x2 - x1 - 10, y2 - y1); // 모양 맞추기 위한 -10
+	ofFill();
+	ofDrawRectangle(x1, y1, x2 - x1 - 10, y2 - y1); // 여기서 그리는 건, perfect timiing 게임 시 음표가 피아노 밑으로 가는 걸 가리기 위함.
 	ofSetColor(ofColor::black);
 	ofNoFill();
 	ofDrawRectangle(x1, y1, x2 - x1 - 10, y2 - y1); // 모양 맞추기 위한 -10
@@ -615,7 +663,7 @@ void ofApp::create_note() {
 	temp->len = t;
 	temp->speed = 4;
 	temp->acce = (0.1 + (float)(rand() % 10) / 100) * (t + 1);
-	if (temp->key == 0) {
+	if (temp->key == 0) { // 흰 건반이 0
 		temp->x = rand() % 21;
 	}
 	else {
@@ -627,6 +675,7 @@ void ofApp::create_note() {
 		}
 	}
 	temp->y = 0;
+	temp->is_calculated = 0;
 	temp->prev = score_rear->prev;
 	temp->next = score_rear;
 	score_rear->prev->next = temp;
@@ -641,8 +690,9 @@ void ofApp::update_note() {
 		temp->y += temp->speed;
 		temp->speed += temp->acce;
 		int ty;
-		if (temp->y > y1 + 100) {
+		if (temp->y > y1 + (temp->speed * 6)) { //y1이 현재 속력 기준으로 6프레임 후 이동거리보다 밑에 있을 시 그 노트는 사라진다.
 			delnote = temp;
+			if (temp->is_calculated == 0) num_of_fail++; // 무시된 음표의 경우 fail로 결정
 			create_note();
 			temp = temp->next;
 			if (delnote->prev) delnote->prev->next = temp;
@@ -659,16 +709,22 @@ void ofApp::perfect_timing_draw() {
 	//ofSetColor(255, 255, 255, 0);
 	//cout << score_front->x << " / " << score_front->y << endl;
 	//cout << score_front->key << " len: " << score_front->len << endl;
-	ofSetColor(ofColor::grey); 
+	//ofSetColor(ofColor::grey);
 	Note* temp = score_front->next;
 	for (temp; temp != score_rear; temp = temp->next) {
 		if (temp->key == 0) { //흰 건반일 때
-			//notes[score_front->len].draw(0, 0);
+			ofNoFill();
+			ofSetColor(ofColor::black);
+			ofDrawRectangle(temp->x * white_x + x1 + black_x / 2, temp->y, black_x, 50);
+			ofFill();
+			ofSetColor(ofColor::white);
 			notes[temp->len].draw(temp->x * white_x + x1 + black_x / 2, temp->y, black_x, 50);
 			//ofDrawCircle(score_front->x * white_x + x1 + black_x, score_front->y, black_x);
 			//update_note();
 		}
 		else {
+			ofSetColor(ofColor::grey);
+			ofFill(); // 검은 건반은 회색!
 			//notes[score_front->len].draw(0, 0);
 			notes[temp->len].draw(temp->x * white_x + x1 + white_x * 3 / 4, temp->y, black_x, 50);
 			//ofDrawCircle(score_front->x * white_x + x1 + white_x * 7 / 8, score_front->y, black_x);
@@ -679,6 +735,25 @@ void ofApp::perfect_timing_draw() {
 
 }
 
-void ofApp::calculate_timing() {
-
+void ofApp::calculate_timing(int key_type, int key_num) {
+	Note* temp = score_front->next;
+	int is_fail = 0; // input key가 현재 내려오는 노트들 중 어느 것에도 맞지 않는다면 잘못 누른 것 -> 그 경우 fail을 하나 올리기로 했다.
+	for (int i = 0; i < perfect_timing; i++, temp = temp->next) {
+		if (temp->is_calculated == 1) continue; // 이미 눌려서 점수가 갱신되었다면 이건 패스
+		if (key_type == temp->key) { // 건반 색깔 유무를 맞춰야 함.
+			if (key_num == temp->x) {
+				is_fail = 1;
+				temp->is_calculated = 1;
+				// 판정의 기준: 평균 속력을 내서 프레임별 이동 거리 계산, 2프레임 내부일 시 perfect, 6프레임 내부일 시 good, 그 이하 fail
+				float perfect_range = (temp->speed + temp->acce) * 3;
+				float good_range = (temp->speed + 3 * temp->acce) * 6;
+				// y1은 흰 건반의 높이, 즉 음표의 판정 부분과 같다!
+				if (abs(temp->y + 50 - y1) < perfect_range) num_of_perfect++; // 50은 내려오는 음표 박스의 길이임.
+				else if (abs(temp->y + 50 - y1) < good_range) num_of_good++;
+				else num_of_fail++;
+				break; // 한 번에 하나씩만 처리해야.
+			}
+		}
+	}
+	if (!is_fail) num_of_fail++; // 입력과 현재 떨어지는 음표들이 맞지 않은 경우: fail++
 }
