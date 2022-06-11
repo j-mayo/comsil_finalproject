@@ -2,7 +2,8 @@
 
 #include "ofMain.h"
 #include "ofxWinMenu.h"
-#include "string.h"
+#include <string.h>
+#include <time.h>
 
 typedef enum {F2, G2, A2, B2, C3, D3, E3, F3, G3, A3, B3, C4, D4, E4, F4, G4, A4, B4, C5, D5, E5} white_piano_key;
 typedef enum {Gb2, Ab2, Bb2, NOT1, Db3, Eb3, NOT2, Gb3, Ab3, Bb3, NOT3, Db4, Eb4, NOT4, Gb4, Ab4, Bb4, NOT5, Db5, Eb5} black_piano_key;
@@ -21,6 +22,19 @@ static char black_keyboard[] = "sdf hj l12 45 789 -=";
 // key 입력이 들어왔을 때 건반에 일대일 대응되는 모든 키를 확인해야 하는데, 일일히 for문을 달아주면 코드 양이 끔찍하게 불어날 것이다.
 // 이를 위해 미리 각 키들의 문자열 배열을 선언해, 맨 위의 enum type과 함께 (if key == white_keyboard[F2]) 등으로 키 입력을 알 수 있고,
 // enum type이므로 for loop로 간결하게 key의 입력을 검사할 수 있다는 장점이 있다.
+
+
+class Note { // 음표 자료구조
+public:
+	int x; // 건반 인덱스: 흰, 검은에 따라 달라진다.
+	float y; // 음표의 y좌표
+	short int len; // 음표 타입 = 4분음표, 8분음표, 16분음표 중 하나이다.
+	short int key; // 흰 건반, 검은 건반 중 하나에 배정된다.
+	float speed; // 떨어질 속도.
+	float acce; // 가속도
+	Note* prev;
+	Note* next;
+};
 
 class ofApp : public ofBaseApp{
 
@@ -44,9 +58,21 @@ class ofApp : public ofBaseApp{
 		// 추가 선언한 함수들
 		void free_Memory(); // 사용된 동적 메모리를 해제하는 함수
 		
+		void play_piano_init(); // play_piano 시 자료구조 초기화
 		void piano_draw(); // 피아노 건반들을 화면에 그려주는 역할.
+		void activatedkey_draw();
+		void print_window();
 
-		bool sound_load(); // 필요한 sound file들을 로딩해주는 역할
+		void perfect_timing_init(int level);
+		void perfect_timing_end();
+		void perfect_timing_draw();
+		void calculate_timing();
+
+		void sound_load(); // 필요한 sound file들을 로딩해주는 역할
+
+		void image_load(); // 필요한 image들을 load하는 함수
+		void create_note(); // note 생성 후 연결시킴
+		void update_note(); // note의 상태를 update
 
 		ofxWinMenu* menu; // Menu object
 		void appMenuFunction(string title, bool bChecked); // Menu return function
@@ -67,12 +93,14 @@ class ofApp : public ofBaseApp{
 
 		// 추가 선언해준 변수들
 		ofTrueTypeFont myFont1; // consil... 출력 위한 폰트
+		ofTrueTypeFont myFont2; // score 출력
 		ofTrueTypeFont myFont_white; // 흰 건반의 음과 눌러야 하는 키보드 버튼을 출력해주기 위한 폰트
 		ofTrueTypeFont myFont_black; // 검은 건반의 음과 눌러야 하는 키보드 버튼을 출력해주기 위한 폰트
 		ofImage myImage; // image를 넣을 일이 있을 때 사용,  *** 없으면 삭제 예정 ***
 
 		int is_intro; // intro 음이 loading되었는지 알려주는 변수. 1이면 로딩 된 것.
 		int play_piano; // play_piano mode인지 알려주는 변수. 1이면 play_piano인 것
+		int perfect_timing; // 현재 게임 중임을 나타내는 변수. 1이면 그런 것
 
 		// 건반
 		int num_of_white; // 흰 건반의 개수
@@ -107,6 +135,16 @@ class ofApp : public ofBaseApp{
 		ofSoundPlayer* white_sound; // 흰 건반의 음들을 담는 ofSoundPlayer의 배열
 		ofSoundPlayer* black_sound; // 검은 건반의 음들을 담는 ofSoundPlayer의 배열
 
-		// 배경
-		ofImage display; // 배경 사진을 그리는 데 이용하는 ofImage 타입 객체, *** 이용하지 않을 시 삭제 예정 ***
+		// 이미지
+		//ofImage note_4;
+		//ofImage note_8;
+		//ofImage note_16;
+		ofImage* notes;
+
+		// perfect timing
+		int num_of_perfect;
+		int num_of_good;
+		int num_of_fail;
+		Note* score_front; // 음표들이 모이면 악보가 된다. 음표 연결 리스트의 시작 음표를 저장하는 포인터 변수.
+		Note* score_rear; // 음표들의 끝을 저장. 
 };
