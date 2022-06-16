@@ -159,6 +159,7 @@ class ofApp : public ofBaseApp{
 		int max_num_of_fail; // 허용되는 fail의 개수, 이 값이 0이 되면 게임오버.
 		Note* score_front; //  음표 연결 리스트의 dummy front.
 		Note* score_rear; // 연결 리스트의 dummy rear. 
-		result* maxheap;
+		result* maxheap; // 기록을 로딩할 때마다 저장하는 배열 기반 max heap
+		result result_print[5]; // 게임 종료 후 5개의 상위 기록을 화면에 draw 시 사용
 		int maxheap_len;
 };

@@ -31,7 +31,7 @@ void ofApp::setup(){
 
 	// 앞으로 사용할 font를 load
 	myFont1.loadFont("verdana.ttf", 12, true, true);
-	myFont2.loadFont("verdana.ttf", 20, true, true);
+	myFont2.loadFont("frabk.ttf", 20, true, true);
 	myFont_white.loadFont("frabk.ttf", 20, true, true);
 	myFont_black.loadFont("frabk.ttf", 15, true, true);
 
@@ -91,7 +91,9 @@ void ofApp::appMenuFunction(string title, bool bChecked) {
 	}
 
 	if (title == "Exit") {
+		if (perfect_timing > 0) perfect_timing_end(); // 게임 중 종료 시 메모리 해제
 		ofExit();
+		free_Memory();
 	}
 	//
 	// Help menu
@@ -165,6 +167,7 @@ void ofApp::keyPressed(int key){
 			doFullScreen(false);
 		}
 		else {
+			if (perfect_timing > 0) perfect_timing_end(); // 게임 중 종료 시 메모리 해제
 			ofExit();
 			free_Memory();
 		}
@@ -659,32 +662,47 @@ void ofApp::perfect_timing_init(int level) {
 	is_gameover = 0;
 
 	// result를 파일에서 불러오기
-	/*
+	FILE* fp;
 	switch (level) {
 	case 1:
-		FILE* fp = fopen("result_easy.txt", "r");
-		if (fp) { // 파일이 있다면
-			fscanf(fp, "%d", &maxheap_len); // 기록의 개수를 받는다
-			maxheap = new result[maxheap_len + 2]; // 기록을 저장할 max heap을 생성
-			for (int i = 1; i <= maxheap_len; i++) {
-				result tempresult;
-				fscanf(fp, "%d %d", &tempresult.perfect, &tempresult.good);
-
-				// max heap에 element 삽입
-				int temp = i;
-				while (temp != 1) {
-					if (tempresult.perfect > maxheap[i / 2].perfect || (tempresult.perfect == maxheap[i / 2].perfect && tempresult.good > maxheap[i / 2].good) {
-
-					}
-				}
-			}
-		}
-		else {
-			maxheap_len = 0;
-			maxheap = new result[maxheap_len+2];
-		}
+		fp = fopen("result_easy.txt", "r");
+		break;
+	case 2:
+		fp = fopen("result_hard.txt", "r");
+		break;
+	case 3:
+		fp = fopen("result_comsil.txt", "r");
+		break;
+	default:
+		return;
 	}
-	*/
+	if (fp) { // 파일이 있다면
+		fscanf(fp, "%d", &maxheap_len); // 기록의 개수를 받는다
+		maxheap = new result[maxheap_len + 2]; // 기록을 저장할 max heap을 생성
+		for (int i = 1; i <= maxheap_len; i++) {
+			result tempresult;
+			fscanf(fp, "%d %d", &tempresult.perfect, &tempresult.good);
+
+			// max heap에 element 삽입하는 부분(push)
+			int temp = i;
+			while (temp != 1) {
+				// result 간 대소 비교는, perfect의 대소 같다면 good의 대소 순으로 판별한다.
+				if (tempresult.perfect > maxheap[temp / 2].perfect || (tempresult.perfect == maxheap[temp / 2].perfect && tempresult.good > maxheap[temp / 2].good)) {
+					maxheap[temp] = maxheap[temp / 2];
+					temp /= 2;
+				}
+				else break;
+			}
+			maxheap[temp] = tempresult;
+		}
+		fclose(fp);
+	}
+	else {
+		maxheap_len = 0;
+		maxheap = new result[maxheap_len+2];
+	}
+	
+	
 }
 
 void ofApp::perfect_timing_end() {
@@ -704,12 +722,24 @@ void ofApp::perfect_timing_end() {
 			delete delnote;
 		}
 	}
+
+	// result를 파일에 기록
+	// result_print에 있는 결과의 개수 파악
+	/*
+	int t;
+	for (t = 0; t < 5; t++) {
+		if (result_print[t].perfect == -1) break;
+	}
+	*/
+	
+	delete[] maxheap; // heap의 경우 게임 init, end마다 메모리를 다르게 할당하므로 해제
+	maxheap_len = 0;
 	perfect_timing = 0;
 }
 
 void ofApp::perfect_timing_gameover() {
 	is_gameover = 1;
-	//perfect_timing_end();
+	gameover.play();
 	
 	// 게임이 종료될 때 눌려있던 건반들을 떼 줌.
 	for (int i = 0; i < num_of_white; i++) {
@@ -718,7 +748,103 @@ void ofApp::perfect_timing_gameover() {
 	for (int j = 0; j < num_of_black; j++) {
 		black_keypressedflag[j] = 0;
 	}
-	gameover.play();
+	
+	// 현재 게임의 기록을 result에 저장하기 위해 maxheap에 push
+	result tempresult;
+	tempresult.perfect = num_of_perfect;
+	tempresult.good = num_of_good;
+
+	int temp = ++maxheap_len;
+	//cout << temp << endl;
+	while (temp != 1) {
+		// result 간 대소 비교는, perfect의 대소 같다면 good의 대소 순으로 판별한다.
+		if (tempresult.perfect > maxheap[temp / 2].perfect || (tempresult.perfect == maxheap[temp / 2].perfect && tempresult.good > maxheap[temp / 2].good)) {
+			maxheap[temp] = maxheap[temp / 2];
+			temp /= 2;
+		}
+		else break;
+	}
+	maxheap[temp] = tempresult;
+	int i;
+
+	// Top 5에 사용할 result들을 maxheap에서 pop하는 과정
+	for (i = 0; i < 5; i++) {
+		if (maxheap_len < 1) break; // 원소가 없다면 break
+		
+		// maxheap에서 원소 pop 과정
+		result_print[i] = maxheap[1]; // pop할 element
+		result tempresult = maxheap[maxheap_len--]; // complete binary tree 기준으로 가장 낮은 level의 마지막 element
+		//cout << maxheap_len << endl;
+		int anc = 1;
+		int des = 2;
+		while (des <= maxheap_len) {
+			if (des < maxheap_len && (maxheap[des + 1].perfect > maxheap[des].perfect || (maxheap[des + 1].perfect == maxheap[des].perfect && maxheap[des + 1].good > maxheap[des].good))) des++;
+			// maxheap(max complete binary tree)에서 des와 des+1 중 우선순위가 더 큰 것을 골라야 하니, des+1의 우선순의가 더 높다면 des에 1 더해줌
+			if (tempresult.perfect > maxheap[des].perfect || (tempresult.perfect == maxheap[des].perfect && tempresult.good > maxheap[des].good)) break;
+			// tempresult가 자신 밑 level의 두 element보다 더 크므로, 이 경우 tempresult는 현재 anc 자리에 있으면 된다.
+
+			maxheap[anc] = maxheap[des]; // 그렇지 않다면 maxheap[des]을 한 단계 올려야 한다.
+			anc = des; // 다음 층 탐색
+			des *= 2;
+		}
+		maxheap[anc] = tempresult; // pop 후 heap 다시 정렬.
+	}
+
+	// 만약 maxheap에 5개보다 적은 개수가 있었다면, draw 할 때를 생각해서 구별해준다.
+	if (i != 5) {
+		result_print[i].perfect = -1;
+		// 이후 draw 시 maxheap[i].perfect가 -1일 경우 그 부분부터는 화면에 출력하지 않는다.
+	}
+	//cout << i << endl;
+	//cout << "====" << endl;
+
+	// 저장된 모든 result들을 파일에 출력
+	FILE* fp;
+	switch (perfect_timing) {
+	case 1:
+		fp = fopen("result_easy.txt", "w");
+		break;
+	case 2:
+		fp = fopen("result_hard.txt", "w");
+		break;
+	case 3:
+		fp = fopen("result_comsil.txt", "w");
+		break;
+	default:
+		fp = fopen("something_wrong.txt", "w");
+		// 게임 모드일 때 perfect_timing은 반드시 1, 2, 3중 하나이니 이 값들 중 하나가 아니라면 문제가 생겼다는 뜻이다.
+	}
+	fprintf(fp, "%d\n", i + maxheap_len); // 파일에 개수 저장
+	//cout << t + maxheap_len << endl;
+	
+	for (int j = 0; j < i; j++) {
+		fprintf(fp, "%d %d\n", result_print[j].perfect, result_print[j].good);
+		//cout << result_print[i].perfect << " " << result_print[i].good << endl;
+	}
+	// maxheap 안의 result를 랭킹 순으로 파일에 출력한다.
+	int iter = maxheap_len;
+	for (int i = 0; i < iter; i++) {
+		if (maxheap_len < 1) break; // 혹시나 원소가 없다면 break
+
+		// maxheap에서 원소 pop 과정, 반복적으로 pop을 해 fprintf를 하는 것으로 txt 파일에 정렬된 result들을 출력.
+		fprintf(fp, "%d %d\n", maxheap[1].perfect, maxheap[1].good); // pop할 element를 파일에 출력한다. 사실상 이 line에서 pop한 것이나 다름없다.
+		result tempresult = maxheap[maxheap_len--]; // complete binary tree 기준으로 가장 낮은 level의 마지막 element
+		int anc = 1;
+		int des = 2;
+		while (des <= maxheap_len) {
+			if (des < maxheap_len && (maxheap[des + 1].perfect > maxheap[des].perfect || (maxheap[des + 1].perfect == maxheap[des].perfect && maxheap[des + 1].good > maxheap[des].good))) des++;
+			// maxheap(max complete binary tree)에서 des와 des+1 중 우선순위가 더 큰 것을 골라야 하니, des+1의 우선순의가 더 높다면 des에 1 더해줌
+			if (tempresult.perfect > maxheap[des].perfect || (tempresult.perfect == maxheap[des].perfect && tempresult.good > maxheap[des].good)) break;
+			// tempresult가 자신 밑 level의 두 element보다 더 크므로, 이 경우 tempresult는 현재 anc 자리에 있으면 된다.
+
+			maxheap[anc] = maxheap[des]; // 그렇지 않다면 maxheap[des]을 한 단계 올려야 한다.
+			anc = des; // 다음 층 탐색
+			des *= 2;
+		}
+		maxheap[anc] = tempresult; // pop 후 heap 다시 정렬.
+	}
+
+	fclose(fp); // FP 닫음
 }
 
 void ofApp::perfect_timing_gameover_draw() {
@@ -726,17 +852,42 @@ void ofApp::perfect_timing_gameover_draw() {
 	char str[200]; // 버퍼
 	ofFill();
 	ofSetColor(ofColor::white);
-	ofDrawRectangle(ofGetWidth() / 4, ofGetHeight() / 4, ofGetWidth() / 2, ofGetHeight() / 2);
+	ofDrawRectangle(ofGetWidth() / 4, ofGetHeight() / 5, ofGetWidth() / 2, ofGetHeight() / 1.75);
 	ofNoFill();
 	ofSetColor(ofColor::black);
-	ofDrawRectangle(ofGetWidth() / 4, ofGetHeight() / 4, ofGetWidth() / 2, ofGetHeight() / 2); // 게임오버 결과창 그릴 흰 네모박스
+	ofDrawRectangle(ofGetWidth() / 4, ofGetHeight() / 5, ofGetWidth() / 2, ofGetHeight() / 1.75); // 게임오버 결과창 그릴 흰 네모박스
 	
 	sprintf(str, "Game-Ooooooover!");
-	myFont2.drawString(str, ofGetWidth() / 2 - 125, ofGetHeight() * 3 / 8);
+	myFont2.drawString(str, ofGetWidth() / 2 - 115, ofGetHeight() / 4 + 20);
 	sprintf(str, "Result: PERFECT: %d GOOD: %d FAIL: %d", num_of_perfect, num_of_good, num_of_fail);
-	myFont2.drawString(str, ofGetWidth() / 2 - 250, ofGetHeight() * 3 / 8 + 40);
+	myFont2.drawString(str, ofGetWidth() / 2 - 225, ofGetHeight() / 4 + 60);
 	sprintf(str, "Press any key but ESC to continue");
-	myFont2.drawString(str, ofGetWidth() / 2 - 225, ofGetHeight() * 3 / 8 + 80);
+	myFont2.drawString(str, ofGetWidth() / 2 - 195, ofGetHeight() / 4 + 100);
+
+	/* 결과 목록도 인쇄?해서 보여주기*/
+	/*
+	ofFill();
+	ofSetColor(ofColor::white);
+	ofDrawRectangle(ofGetWidth() * 3 / 4 + 10, ofGetHeight() / 4, ofGetWidth() / 4 - 20, ofGetHeight() / 2);
+	ofNoFill();
+	ofSetColor(ofColor::black);
+	ofDrawRectangle(ofGetWidth() * 3 / 4 + 10, ofGetHeight() / 4, ofGetWidth() / 4 - 20, ofGetHeight() / 2);
+	
+	myFont2.drawString("Top 5 results", ofGetWidth() * 13 / 16, ofGetHeight() * 5 / 16);
+
+	for (int i = 0; i < 5; i++) {
+		if (result_print[i].perfect == -1) break;
+		sprintf(str, "%d) PERFECT: %d GOOD: %d", i + 1, result_print[i].perfect, result_print[i].good);
+		myFont2.drawString(str, ofGetWidth() * 3 / 4 + 20, ofGetHeight() * 5 / 16 + 60 * (i + 1));
+	}
+	*/
+	myFont2.drawString("-----Top 5 results-----", ofGetWidth() / 2 - 130, ofGetHeight() * 4 / 9);
+
+	for (int i = 0; i < 5; i++) {
+		if (result_print[i].perfect == -1) break;
+		sprintf(str, "%d) PERFECT: %3d | GOOD: %3d", i + 1, result_print[i].perfect, result_print[i].good);
+		myFont2.drawString(str, ofGetWidth() / 2 - 180, ofGetHeight() / 2 + 40 * (i + 1));
+	}
 
 }
 
@@ -790,7 +941,7 @@ void ofApp::update_note() {
 		else temp = temp->next;
 
 		// 게임오버 조건
-		if (num_of_fail >= max_num_of_fail) {
+		if (!is_gameover && num_of_fail >= max_num_of_fail) { // gameover 함수는 한 번만 호출되어야 하므로, 아직 호출되지 않았으면서 게임오버 조건 충족 시 호출
 			perfect_timing_gameover(); // max_num_of_fail보다 많이 틀리면 gameover
 		}
 	}
@@ -858,5 +1009,5 @@ void ofApp::calculate_timing(int key_type, int key_num) {
 		}
 		if (!is_fail) num_of_fail++; // 입력과 현재 떨어지는 음표들이 맞지 않은 경우: fail++
 	}
-	else perfect_timing_gameover();
+	else if (!is_gameover) perfect_timing_gameover(); // gameover 조건에 맞으면서 아직 함수가 호출되지 않은 경우 호출
 }
