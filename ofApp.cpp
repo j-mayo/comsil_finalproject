@@ -182,7 +182,9 @@ void ofApp::keyPressed(int key){
 		if (key != VK_ESCAPE) {
 			//is_gameover = 0;
 			gameover.stop();
-			perfect_timing_init(perfect_timing);
+			int temp = perfect_timing; // gameover 후 이어할 시 난이도는 보존된다.
+			perfect_timing_end(); // 랭킹 저장을 위한 end
+			perfect_timing_init(temp); // 게임 시작
 			//perfect_timing_init(max_num_of_fail / 15); // 게임 다시 시작, 게임오버 당시의 레벨로 다시 시작
 			return;
 		}
@@ -651,11 +653,38 @@ void ofApp::perfect_timing_init(int level) {
 		score_rear->prev = score_front;
 		
 	}
-	if (is_gameover == 0) { // 게임오버 후 시작한 경우는 난이도가 그대로이므로, 음표의 개수가 변경되지 않으니 그대로 있어도 된다.
-		// is_gameover가 0이라는 뜻은 gameover 후 시작하지 않았다는 뜻이니 음표를 생성해준다.
-		for (int i = 0; i < level; i++) create_note(); // level에 따라 떨어지는 음의 개수가 늘어남.
-	}
+
+	for (int i = 0; i < level; i++) create_note(); // level에 따라 떨어지는 음의 개수가 늘어남.
+
 	is_gameover = 0;
+
+	// result를 파일에서 불러오기
+	/*
+	switch (level) {
+	case 1:
+		FILE* fp = fopen("result_easy.txt", "r");
+		if (fp) { // 파일이 있다면
+			fscanf(fp, "%d", &maxheap_len); // 기록의 개수를 받는다
+			maxheap = new result[maxheap_len + 2]; // 기록을 저장할 max heap을 생성
+			for (int i = 1; i <= maxheap_len; i++) {
+				result tempresult;
+				fscanf(fp, "%d %d", &tempresult.perfect, &tempresult.good);
+
+				// max heap에 element 삽입
+				int temp = i;
+				while (temp != 1) {
+					if (tempresult.perfect > maxheap[i / 2].perfect || (tempresult.perfect == maxheap[i / 2].perfect && tempresult.good > maxheap[i / 2].good) {
+
+					}
+				}
+			}
+		}
+		else {
+			maxheap_len = 0;
+			maxheap = new result[maxheap_len+2];
+		}
+	}
+	*/
 }
 
 void ofApp::perfect_timing_end() {
@@ -802,25 +831,32 @@ void ofApp::perfect_timing_draw() {
 void ofApp::calculate_timing(int key_type, int key_num) {
 	Note* temp = score_front->next;
 	int is_fail = 0; // input key가 현재 내려오는 노트들 중 어느 것에도 맞지 않는다면 잘못 누른 것 -> 그 경우 fail을 하나 올리기로 했다.
-	for (int i = 0; i < perfect_timing; i++, temp = temp->next) {
-		if (temp->is_calculated == 1) continue; // 이미 눌려서 점수가 갱신되었다면 이건 패스
-		if (key_type == temp->key) { // 건반 색깔 유무를 맞춰야 함.
-			if (key_num == temp->x) {
-				is_fail = 1;
-				temp->is_calculated = 1;
-				// 판정의 기준: 평균 속력을 내서 프레임별 이동 거리 계산, 2프레임 내부일 시 perfect, 6프레임 내부일 시 good, 그 이하 fail
-				float perfect_range = (temp->speed + temp->acce) * 3;
-				float good_range = (temp->speed + 3 * temp->acce) * 6;
-				// y1은 흰 건반의 높이, 즉 음표의 판정 부분과 같다!
-				if (abs(temp->y + 50 - y1) < perfect_range) {
-					num_of_perfect++; // 50은 내려오는 음표 박스의 길이임.
-					max_num_of_fail++; // perfect한 timing을 맞출 경우, HP가 1 증가!
+	if (num_of_fail < max_num_of_fail) {
+		// update_note에서 처리되지 않은 음표가 있을 경우 fail을 1 올린다. update_note에 gameover 조건을 넣야 한다.
+		// 그러나 update_note는 draw 후에 이뤄지기에 key 입력 -> calculate_timing -> draw -> update 사이클에서 
+		// calculate_timing에서 num_of_fail이 너무 커졌는데도 draw 함수 전이라 gameover가 되지 않는 현상이 있었다.
+		// calculate_timing 중 num_of_fail이 max_num_of_fail보다 커질 수 있으므로 여기서도 gameover 조건을 넣어야 한다.
+		for (int i = 0; i < perfect_timing; i++, temp = temp->next) {
+			if (temp->is_calculated == 1) continue; // 이미 눌려서 점수가 갱신되었다면 이건 패스
+			if (key_type == temp->key) { // 건반 색깔 유무를 맞춰야 함.
+				if (key_num == temp->x) {
+					is_fail = 1;
+					temp->is_calculated = 1;
+					// 판정의 기준: 평균 속력을 내서 프레임별 이동 거리 계산, 2프레임 내부일 시 perfect, 6프레임 내부일 시 good, 그 이하 fail
+					float perfect_range = (temp->speed + temp->acce) * 3;
+					float good_range = (temp->speed + 3 * temp->acce) * 6;
+					// y1은 흰 건반의 높이, 즉 음표의 판정 부분과 같다!
+					if (abs(temp->y + 50 - y1) < perfect_range) {
+						num_of_perfect++; // 50은 내려오는 음표 박스의 길이임.
+						max_num_of_fail++; // perfect한 timing을 맞출 경우, HP가 1 증가!
+					}
+					else if (abs(temp->y + 50 - y1) < good_range) num_of_good++;
+					else num_of_fail++;
+					break; // 한 번에 하나씩만 처리해야.
 				}
-				else if (abs(temp->y + 50 - y1) < good_range) num_of_good++;
-				else num_of_fail++;
-				break; // 한 번에 하나씩만 처리해야.
 			}
 		}
+		if (!is_fail) num_of_fail++; // 입력과 현재 떨어지는 음표들이 맞지 않은 경우: fail++
 	}
-	if (!is_fail) num_of_fail++; // 입력과 현재 떨어지는 음표들이 맞지 않은 경우: fail++
+	else perfect_timing_gameover();
 }

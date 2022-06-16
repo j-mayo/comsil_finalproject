@@ -39,7 +39,11 @@ public:
 	Note* prev; // 이전 음표를 가리킨다
 	Note* next; // 다음 음표를 가리킨다
 };
-
+class result {
+public:
+	int perfect;
+	int good;
+};
 class ofApp : public ofBaseApp{
 
 	public:
@@ -155,4 +159,6 @@ class ofApp : public ofBaseApp{
 		int max_num_of_fail; // 허용되는 fail의 개수, 이 값이 0이 되면 게임오버.
 		Note* score_front; //  음표 연결 리스트의 dummy front.
 		Note* score_rear; // 연결 리스트의 dummy rear. 
+		result* maxheap;
+		int maxheap_len;
 };
