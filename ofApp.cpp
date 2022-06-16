@@ -182,7 +182,8 @@ void ofApp::keyPressed(int key){
 		if (key != VK_ESCAPE) {
 			//is_gameover = 0;
 			gameover.stop();
-			perfect_timing_init(max_num_of_fail / 15); // 게임 다시 시작, 게임오버 당시의 레벨로 다시 시작
+			perfect_timing_init(perfect_timing);
+			//perfect_timing_init(max_num_of_fail / 15); // 게임 다시 시작, 게임오버 당시의 레벨로 다시 시작
 			return;
 		}
 	}
@@ -590,7 +591,7 @@ void ofApp::print_window() { // string을 화면에 띄워주는 함수
 }
 void ofApp::sound_load() {
 	// 필요한 sound file을 load하는 함수
-	is_intro = intro.load("sounds/intro.mp3"); // loading 성공 시 1, 아니면 0
+	intro.load("sounds/intro.mp3"); // loading 성공 시 1, 아니면 0
 	intro.play();
 
 
@@ -613,6 +614,7 @@ void ofApp::sound_load() {
 	}
 
 	for (int i = 0; i < num_of_black; i++) {
+		if (i == 3 || i == 6 || i == 10 || i == 13 || i == 17) continue;
 		strcpy(temps, "sounds/");
 		strcat(temps, black_file_name[i]);
 		strcat(temps, extension);
@@ -636,7 +638,7 @@ void ofApp::perfect_timing_init(int level) {
 	intro.stop(); // intro가 재생 중이라면 멈춰준다.
 	gamestart.play();
 	play_piano = 0;
-	perfect_timing = 1;
+	perfect_timing = level;
 	num_of_perfect = 0;
 	num_of_good = 0;
 	num_of_fail = 0;
@@ -716,13 +718,14 @@ void ofApp::create_note() {
 	int t;
 	t = rand() % 3;
 	temp->len = t;
-	temp->speed = 4;
+	temp->speed = 3.5 + 0.5 * (perfect_timing - 1);
 	temp->acce = (0.1 + (float)(rand() % 10) / 100) * (t + 1);
 	if (temp->key == 0) { // 흰 건반이 0
 		temp->x = rand() % 21;
 	}
 	else {
 		while (1) {
+			// 검은 건반인 경우, 나오면 안 되는 x값이 있으니 그 값을 제외하고 찾기 위해 while 사용
 			t = rand() % 20;
 			if (t == 3 || t == 6 || t == 10 || t == 13 || t == 17) continue; // 검은 건반은 빈 곳이 있다!
 			temp->x = t;

@@ -5,9 +5,12 @@
 #include <string.h>
 #include <time.h>
 
-typedef enum {F2, G2, A2, B2, C3, D3, E3, F3, G3, A3, B3, C4, D4, E4, F4, G4, A4, B4, C5, D5, E5} white_piano_key;
-typedef enum {Gb2, Ab2, Bb2, NOT1, Db3, Eb3, NOT2, Gb3, Ab3, Bb3, NOT3, Db4, Eb4, NOT4, Gb4, Ab4, Bb4, NOT5, Db5, Eb5} black_piano_key;
+//typedef enum {F2, G2, A2, B2, C3, D3, E3, F3, G3, A3, B3, C4, D4, E4, F4, G4, A4, B4, C5, D5, E5} white_piano_key;
+//typedef enum {Gb2, Ab2, Bb2, NOT1, Db3, Eb3, NOT2, Gb3, Ab3, Bb3, NOT3, Db4, Eb4, NOT4, Gb4, Ab4, Bb4, NOT5, Db5, Eb5} black_piano_key;
+// 검은 건반, 흰 건반들을 순서대로 정수에 대응시킨 구조이다. 검은 건반의 NOTx들은, 
+// 피아노에선 흰 건반은 연속하나 검은 건반은 빠진 곳이 있으므로 그 점을 보정해 준 것이다.
 // enum type 구조를 활용해 코드의 가독성을 높이고 구현을 용이하게 하였다.
+// 근데 사용 안해도 될듯
 
 static char* white_key_name[] = {"F2\n z", "G2\n x", "A2\n c", "B2\n v", "C3\n b", "D3\n n", "E3\n m", "F3\n ,", "G3\n .", "A3\n q", "B3\n w", "C4\n e", "D4\n r", "E4\n t", "F4\n y", "G4\n u", "A4\n i", "B4\n o", "C5\n p", "D5\n [", "E5\n ]"};
 static char* black_key_name[] = { "Gb2\n  s", "Ab2\n  d", "Bb2\n  f", "", "Db3\n  h", "Eb3\n  j", "", "Gb3\n  l", "Ab3\n  1", "Bb3\n  2", "", "Db4\n  4", "Eb4\n  5", "", "Gb4\n  7", "Ab4\n  8", "Bb4\n  9", "", "Db5\n  -", "Eb5\n  =" };
@@ -29,12 +32,12 @@ public:
 	int x; // 건반 인덱스: 흰, 검은에 따라 달라진다.
 	float y; // 음표의 y좌표
 	short int len; // 음표 타입 = 4분음표, 8분음표, 16분음표 중 하나이다.
-	short int key; // 흰 건반, 검은 건반 중 하나에 배정된다. 흰이 0
+	short int key; // 흰 건반, 검은 건반 중 하나에 배정된다. 흰이 0, 검이 1
 	float speed; // 떨어질 속도.
 	float acce; // 가속도
-	short int is_calculated;
-	Note* prev;
-	Note* next;
+	short int is_calculated; // 이 음표가 판정되었는지 여부를 판단. 되었으면 1
+	Note* prev; // 이전 음표를 가리킨다
+	Note* next; // 다음 음표를 가리킨다
 };
 
 class ofApp : public ofBaseApp{
@@ -56,7 +59,7 @@ class ofApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
 
-		// 추가 선언한 함수들
+		// 선언한 함수들
 		void free_Memory(); // 사용된 동적 메모리를 해제하는 함수
 		
 		void play_piano_init(); // play_piano 시 자료구조 초기화
@@ -80,46 +83,44 @@ class ofApp : public ofBaseApp{
 		ofxWinMenu* menu; // Menu object
 		void appMenuFunction(string title, bool bChecked); // Menu return function
 
-		
-
 		float windowWidth, windowHeight; 
 		HWND hWnd; // Application window
 		HWND hWndForeground; // current foreground window
 
 		// Example menu variables
-		bool bShowInfo;
+		//bool bShowInfo;
 		bool bFullscreen;
 		bool bTopmost;
 		// Example functions
 		void doFullScreen(bool bFull);
 		void doTopmost(bool bTop);
 
-		// 추가 선언해준 변수들
+
+		// 선언해준 변수들
 		ofTrueTypeFont myFont1; // consil... 출력 위한 폰트
-		ofTrueTypeFont myFont2; // score 출력
+		ofTrueTypeFont myFont2; // 현재 노트 처리 결과 출력
 		ofTrueTypeFont myFont_white; // 흰 건반의 음과 눌러야 하는 키보드 버튼을 출력해주기 위한 폰트
 		ofTrueTypeFont myFont_black; // 검은 건반의 음과 눌러야 하는 키보드 버튼을 출력해주기 위한 폰트
-		ofImage myImage; // image를 넣을 일이 있을 때 사용,  *** 없으면 삭제 예정 ***
 
-		int is_intro; // intro 음이 loading되었는지 알려주는 변수. 1이면 로딩 된 것.
+		//int is_intro; // intro 음이 loading되었는지 알려주는 변수. 1이면 로딩 된 것.
 		int play_piano; // play_piano mode인지 알려주는 변수. 1이면 play_piano인 것
 		int perfect_timing; // 현재 게임 중임을 나타내는 변수. 1이면 그런 것
 		int is_gameover; // 게임오버 여부를 알려주는 변수. 1이면 게임오버
 
 		// 건반
 		int num_of_white; // 흰 건반의 개수
-		int num_of_black; // 검은 건반의 개수
+		int num_of_black; // 검은 건반 + 빈 공간의 개수
 		float white_x; // 흰 건반의 폭
 		float white_y; // 흰 건반의 길이
 		float black_x; // 검은 폭
 		float black_y; // 검은 높이
-
-		float x1, x2, y1, y2; // 총 건반의 사각형 표시, 왼쪽 위와 오른쪽 아래 꼭짓점의 좌효
+		float x1, x2, y1, y2; // 총 건반의 사각형 표시, 왼쪽 위와 오른쪽 아래 꼭짓점의 좌표
 
 		int* white_keypressedflag; // key가 눌렸을 때, 화면에 표시하고 소리를 내는 등 flag
 		int* black_keypressedflag; // (black key의 경우)
 		int white_r; // key가 눌렸을 때 화면에 키가 눌림을 표시해주는 원을 그릴 때의 반지름
 		int black_r; // (black key의 경우)
+
 		//int* white_circle_x; 
 		//int* black_circle_x;
 
@@ -135,23 +136,23 @@ class ofApp : public ofBaseApp{
 		//ofSoundPlayer  sound_G2;
 
 		
-		ofSoundPlayer intro; // intro 음악을 담을 ofSoundPlayer 객체
+		ofSoundPlayer intro; // intro 음악을 담을 ofSoundPlayer class
 		ofSoundPlayer* white_sound; // 흰 건반의 음들을 담는 ofSoundPlayer의 배열
 		ofSoundPlayer* black_sound; // 검은 건반의 음들을 담는 ofSoundPlayer의 배열
-		ofSoundPlayer gamestart;
-		ofSoundPlayer gameover;
+		ofSoundPlayer gamestart; // perfect timing 시작 시 시작 효과음
+		ofSoundPlayer gameover; // perfect timing 게임오버 시 나오는 슬픈 배경음악
 
 		// 이미지
 		//ofImage note_4;
 		//ofImage note_8;
 		//ofImage note_16;
-		ofImage* notes;
+		ofImage* notes; // 음표 이미지들을 담는 배열
 
 		// perfect timing
-		int num_of_perfect;
-		int num_of_good;
-		int num_of_fail;
-		int max_num_of_fail;
-		Note* score_front; // 음표들이 모이면 악보가 된다. 음표 연결 리스트의 시작 음표를 저장하는 포인터 변수.
-		Note* score_rear; // 음표들의 끝을 저장. 
+		int num_of_perfect; // 현재 perfect 판정의 개수
+		int num_of_good; // 현재 good 판정의 개수
+		int num_of_fail; // 현재 fail 판정의 개수
+		int max_num_of_fail; // 허용되는 fail의 개수, 이 값이 0이 되면 게임오버.
+		Note* score_front; //  음표 연결 리스트의 dummy front.
+		Note* score_rear; // 연결 리스트의 dummy rear. 
 };
