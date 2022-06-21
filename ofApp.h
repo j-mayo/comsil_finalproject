@@ -71,6 +71,10 @@ class ofApp : public ofBaseApp{
 		void activatedkey_draw();
 		void print_window();
 
+		void sound_load(); // 필요한 sound file들을 로딩해주는 역할
+
+		void image_load(); // 필요한 image들을 load하는 함수
+
 		void perfect_timing_init(int level);
 		void perfect_timing_end();
 		void perfect_timing_gameover();
@@ -78,11 +82,11 @@ class ofApp : public ofBaseApp{
 		void perfect_timing_draw();
 		void calculate_timing(int key_type, int key_num);
 
-		void sound_load(); // 필요한 sound file들을 로딩해주는 역할
-
-		void image_load(); // 필요한 image들을 load하는 함수
+		
 		void create_note(); // note 생성 후 연결시킴
 		void update_note(); // note의 상태를 update
+		void push_maxheap(result tempresult); // maxheap에 원소 삽입
+		result pop_maxheap(); // maxheap에서 최대 원소 반환
 
 		ofxWinMenu* menu; // Menu object
 		void appMenuFunction(string title, bool bChecked); // Menu return function
@@ -161,5 +165,5 @@ class ofApp : public ofBaseApp{
 		Note* score_rear; // 연결 리스트의 dummy rear. 
 		result* maxheap; // 기록을 로딩할 때마다 저장하는 배열 기반 max heap
 		result result_print[5]; // 게임 종료 후 5개의 상위 기록을 화면에 draw 시 사용
-		int maxheap_len;
+		int maxheap_len; // heap 길이
 };

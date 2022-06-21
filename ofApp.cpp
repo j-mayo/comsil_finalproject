@@ -28,6 +28,33 @@ void ofApp::setup(){
 
 	menu->CreateMenuFunction(&ofApp::appMenuFunction);
 
+	// 현재 건반의 개수는 흰색 21개, 검은색 15개로 총 36개이다. 왜 검은색이 20개이냐, 그것은 바로 검은 건반은 연속하지 않으므로 구현 시의 효율성을 위해 20개로 했다.
+	num_of_white = 21;
+	num_of_black = 20;
+
+	// 화면에 나올 건반 길이를 설정
+	white_x = (float)((ofGetWidth() - 20) / num_of_white); // 좌우 여유 10px
+	white_y = (float)((ofGetHeight() - 20) / 2.5); // 하단 여유 20px
+	black_x = (float)white_x / 2;
+	black_y = (float)white_y * 3 / 5;
+	// 눌렸을 때 표시될 원을 그릴 반지름 설정
+	white_r = white_x / 3;
+	black_r = black_x / 3;
+
+	// 필요한 자료구조들을 동적 할당
+	white_keypressedflag = new int[num_of_white];
+	black_keypressedflag = new int[num_of_black];
+	white_sustainflag = new int[num_of_white];
+	black_sustainflag = new int[num_of_black];
+	white_sound = new ofSoundPlayer[num_of_white];
+	black_sound = new ofSoundPlayer[num_of_black];
+	notes = new ofImage[3];
+
+	score_front = new Note; // dummy note
+	score_rear = new Note; // dummy note
+	score_front->next = score_rear;
+	score_rear->prev = score_front;
+
 
 	// 앞으로 사용할 font를 load
 	myFont1.loadFont("verdana.ttf", 12, true, true);
@@ -73,7 +100,7 @@ void ofApp::setup(){
 	//white_sound_flag = new int[14];
 	//black_sound_flag = new int[13];
 	sound_load();
-	
+	intro.play();
 	// image part
 	image_load();
 	
@@ -92,8 +119,9 @@ void ofApp::appMenuFunction(string title, bool bChecked) {
 
 	if (title == "Exit") {
 		if (perfect_timing > 0) perfect_timing_end(); // 게임 중 종료 시 메모리 해제
-		ofExit();
 		free_Memory();
+		ofExit();
+		
 	}
 	//
 	// Help menu
@@ -168,8 +196,9 @@ void ofApp::keyPressed(int key){
 		}
 		else {
 			if (perfect_timing > 0) perfect_timing_end(); // 게임 중 종료 시 메모리 해제
-			ofExit();
 			free_Memory();
+			ofExit();
+			
 		}
 	}
 	/*
@@ -199,7 +228,7 @@ void ofApp::keyPressed(int key){
 
 		// sustain pedal이 눌린 경우, 현재 눌린 건반들에 대해 sustain_flag를 설정해 줘야 하므로 이 부분을 실행.
 		if (sustain_pedal == 1) {
-			// 현재 눌린 건반들에 대해, sustain_flag를 1로 설정해 눌려있다는 것을 알린다.
+			// "현재 눌린 상태인 건반들"에 대해, sustain_flag를 1로 설정해 눌려있다는 것을 알린다.
 			for (int i = 0; i < num_of_white; i++) {
 				if (white_keypressedflag[i] == 1) {
 					white_sustainflag[i] = 1;
@@ -279,7 +308,7 @@ void ofApp::keyPressed(int key){
 }
 
 //--------------------------------------------------------------
-void ofApp::keyReleased(int key){
+void ofApp::keyReleased(int key) {
 
 	if (play_piano) {
 		if (key == ' ') {
@@ -304,10 +333,12 @@ void ofApp::keyReleased(int key){
 				}
 			}
 		}
+		/*
 		if (sustain_pedal == 0) {
 			// sustain_pedal이 눌린 상태라면 음을 종료해서는 안 되므로 조건에 추가한다.
 			for (int i = 0; i < num_of_white; i++) {
-				if (key == white_keyboard[i] && white_keypressedflag[i] == 1) {
+				//if (key == white_keyboard[i] && white_keypressedflag[i] == 1) {
+				if(key == white_keyboard[i] && white_keypressedflag[i] == 1) {
 					white_keypressedflag[i] = 0;
 					white_sound[i].stop();
 				}
@@ -321,30 +352,47 @@ void ofApp::keyReleased(int key){
 				}
 			}
 		}
-	}
-
-	if (perfect_timing > 0) { // perfect timing 게임에선 sustain pedal을 활성화하지 않는다.
-		// 여기선 음을 바로 끊지 않고, 그냥 keypressedflag만 0으로 설정해 그림은 안 그려지되, 음이 자연스럽게 끊기도록 한다.
+		*/
 		for (int i = 0; i < num_of_white; i++) {
-			if (key == white_keyboard[i]) {
-				if (white_keypressedflag[i] == 1) {
-					white_keypressedflag[i] = 0;
-				}
+			//if (key == white_keyboard[i] && white_keypressedflag[i] == 1) {
+			if (key == white_keyboard[i] && white_keypressedflag[i] == 1) {
+				white_keypressedflag[i] = 0;
+				if (sustain_pedal == 0) white_sound[i].stop();
 			}
 		}
 
 		for (int i = 0; i < num_of_black; i++) {
 			if (i == 3 || i == 6 || i == 10 || i == 13 || i == 17) continue;
-			if (key == black_keyboard[i]) {
-				if (black_keypressedflag[i] == 1) {
-					black_keypressedflag[i] = 0;
-				}
+			if (key == black_keyboard[i] && black_keypressedflag[i] == 1) {
+				black_keypressedflag[i] = 0;
+				if (sustain_pedal == 0) black_sound[i].stop();
 			}
 		}
-
 	}
-	
+
+
+		if (perfect_timing > 0) { // perfect timing 게임에선 sustain pedal을 활성화하지 않는다.
+			// 여기선 음을 바로 끊지 않고, 그냥 keypressedflag만 0으로 설정해 그림은 안 그려지되, 음이 자연스럽게 끊기도록 한다.
+			for (int i = 0; i < num_of_white; i++) {
+				if (key == white_keyboard[i]) {
+					if (white_keypressedflag[i] == 1) {
+						white_keypressedflag[i] = 0;
+					}
+				}
+			}
+
+			for (int i = 0; i < num_of_black; i++) {
+				if (i == 3 || i == 6 || i == 10 || i == 13 || i == 17) continue;
+				if (key == black_keyboard[i]) {
+					if (black_keypressedflag[i] == 1) {
+						black_keypressedflag[i] = 0;
+					}
+				}
+			}
+
+	    }
 }
+
 
 //--------------------------------------------------------------
 void ofApp::mouseMoved(int x, int y ){
@@ -469,15 +517,9 @@ void ofApp::free_Memory() {
 void ofApp::play_piano_init() {
 	play_piano = 1;
 	perfect_timing = 0;
+	// sustain_pedal은 초기에 눌리지 않으므로 0으로 초기화.
+	sustain_pedal = 0;
 	// key part
-	// 현재 건반의 개수는 흰색 21개, 검은색 15개로 총 36개이다. 왜 검은색이 20개이냐, 그것은 바로 검은 건반은 연속하지 않으므로 구현 시의 효율성을 위해 20개로 했다.
-	num_of_white = 21;
-	num_of_black = 20;
-	// 필요한 자료구조들을 동적 할당 해 준다.
-	if (!white_keypressedflag) white_keypressedflag = new int[num_of_white];
-	if (!black_keypressedflag) black_keypressedflag = new int[num_of_black];
-	if (!white_sustainflag) white_sustainflag = new int[num_of_white];
-	if (!black_sustainflag) black_sustainflag = new int[num_of_black];
 	
 	// 자료구조를 초기화한다.
 	for (int i = 0; i < num_of_white; i++) {
@@ -488,22 +530,10 @@ void ofApp::play_piano_init() {
 		black_keypressedflag[i] = 0;
 		black_sustainflag[i] = 0;
 	}
-	// sustain_pedal은 초기에 눌리지 않으므로 0으로 초기화.
-	sustain_pedal = 0;
+	
 }
 
 void ofApp::piano_draw() {
-	char str[200];
-
-	// 화면에 나올 건반 길이를 설정
-	white_x = (float)((ofGetWidth() - 20) / num_of_white); // 좌우 여유 10px
-	white_y = (float)((ofGetHeight() - 20) / 2.5); // 하단 여유 20px
-	black_x = (float)white_x / 2;
-	black_y = (float)white_y * 3 / 5;
-	// 눌렸을 때 표시될 원을 그릴 반지름 설정
-	white_r = white_x / 3;
-	black_r = black_x / 3;
-
 	// 피아노 전체 사각형 꼭짓점 설정
 	x1 = 10;
 	x2 = ofGetWidth() - 10;
@@ -549,13 +579,15 @@ void ofApp::activatedkey_draw() {
 	ofFill();
 	ofSetColor(ofColor::lightSalmon);
 	for (int i = 0; i < num_of_white; i++) { // 흰 건반에 대함
+		//if (white_keypressedflag[i] == 1 || white_sustainflag[i] == 1) {
 		if (white_keypressedflag[i] == 1) {
 			ofDrawCircle(x1 + white_x / 2 + i * white_x, y2 - white_y / 6, white_r); // 적절히 좌표를 계산해 보기 좋게 출력한다.
 		}
 	}
 
 	for (int i = 0; i < num_of_black; i++) { // 검은 건반에 대함
-		if (black_keypressedflag[i] == 1) { // black_key의 경우 중간중간 없는 건반이 있지만 이것들은 절대 눌릴 염려가 없어 따로 처리하지 않았다.
+		// if (black_keypressedflag[i] == 1 || black_sustainflag[i] == 1) { // black_key의 경우 중간중간 없는 건반이 있지만 이것들은 절대 눌릴 염려가 없어 따로 처리하지 않았다.
+		if (black_keypressedflag[i] == 1){
 			ofDrawCircle(x1 + white_x * (i + 1), y2 - white_y / 2 - white_y / 60, black_r); // 적절히 좌표를 계산해 보기 좋게 출력한다.
 		}
 	}
@@ -597,12 +629,8 @@ void ofApp::print_window() { // string을 화면에 띄워주는 함수
 void ofApp::sound_load() {
 	// 필요한 sound file을 load하는 함수
 	intro.load("sounds/intro.mp3"); // loading 성공 시 1, 아니면 0
-	intro.play();
-
-
-	// 배열 할당
-	white_sound = new ofSoundPlayer[num_of_white];
-	black_sound = new ofSoundPlayer[num_of_black];
+	
+	
 	// 파일 확장자 설정. 필요에 의해 바꿀 수 있다.
 	char extension[] = ".wav";
 	// 건반 이름과 키를 화면에 출력할 때 쓰는 문자열 버퍼
@@ -633,7 +661,7 @@ void ofApp::sound_load() {
 }
 
 void ofApp::image_load() {
-	notes = new ofImage[3];
+	
 	notes[0].load("images/Note_4.PNG");
 	notes[1].load("images/Note_8.PNG");
 	notes[2].load("images/Note_16.PNG");
@@ -648,42 +676,41 @@ void ofApp::perfect_timing_init(int level) {
 	num_of_good = 0;
 	num_of_fail = 0;
 	max_num_of_fail = level * 15;
+	is_gameover = 0;
 	
-	if (!score_front) { // init이 처음 실행될 때는 이 if문이 실행된다.
-		score_front = new Note; // dummy note
-		score_rear = new Note; // dummy note
-		score_front->next = score_rear;
-		score_rear->prev = score_front;
-		
-	}
 
 	for (int i = 0; i < level; i++) create_note(); // level에 따라 떨어지는 음의 개수가 늘어남.
 
-	is_gameover = 0;
+	
 
 	// result를 파일에서 불러오기
 	FILE* fp;
 	switch (level) {
 	case 1:
-		fp = fopen("result_easy.txt", "r");
+		fp = fopen("data/result_easy.txt", "r");
 		break;
 	case 2:
-		fp = fopen("result_hard.txt", "r");
+		fp = fopen("data/result_hard.txt", "r");
 		break;
 	case 3:
-		fp = fopen("result_comsil.txt", "r");
+		fp = fopen("data/result_comsil.txt", "r");
 		break;
 	default:
 		return;
 	}
 	if (fp) { // 파일이 있다면
-		fscanf(fp, "%d", &maxheap_len); // 기록의 개수를 받는다
-		maxheap = new result[maxheap_len + 2]; // 기록을 저장할 max heap을 생성
-		for (int i = 1; i <= maxheap_len; i++) {
+		int len;
+		fscanf(fp, "%d", &len); // 기록의 개수를 받는다
+		maxheap = new result[len + 2]; // 기록을 저장할 max heap을 생성
+		maxheap_len = 0;
+
+		for (int i = 1; i <= len; i++) {
 			result tempresult;
 			fscanf(fp, "%d %d", &tempresult.perfect, &tempresult.good);
 
 			// max heap에 element 삽입하는 부분(push)
+			push_maxheap(tempresult);
+			/*
 			int temp = i;
 			while (temp != 1) {
 				// result 간 대소 비교는, perfect의 대소 같다면 good의 대소 순으로 판별한다.
@@ -694,6 +721,7 @@ void ofApp::perfect_timing_init(int level) {
 				else break;
 			}
 			maxheap[temp] = tempresult;
+			*/
 		}
 		fclose(fp);
 	}
@@ -706,11 +734,7 @@ void ofApp::perfect_timing_init(int level) {
 }
 
 void ofApp::perfect_timing_end() {
-	// 끝날 시 일시적으로 할당된 메모리를 해제. free memory와 구분한 이유는 free-memory에서 해제하는 메모리는 
-	// 프로그램 전체의 메모리이다. play_piano에서 할당한 메모리의 경우 처음에만 할당하고 따로 재할당할 필요가 없으나(피아노를 쳐도 메모리 구조는 안 변함).
-	// perfect_timing 시에는 연결 리스트를 사용하기 때문에 note 생성 시마다 연결하며 메모리가 변하므로,
-	// 실행할 때 초기화를 하지 않으면 꼬일 수 있다. 따라서  초기 상태로 메모리를 만들어야 하므로, 
-	// 끝날 시 메모리 누수가 없게 할당한 것을 해제.
+	// 끝날 시 일시적으로 할당된 Note들의 메모리를 해제. 
 	if (score_front) {
 		Note* temp = score_front->next;
 		Note* delnote;
@@ -753,7 +777,8 @@ void ofApp::perfect_timing_gameover() {
 	result tempresult;
 	tempresult.perfect = num_of_perfect;
 	tempresult.good = num_of_good;
-
+	push_maxheap(tempresult);
+	/*
 	int temp = ++maxheap_len;
 	//cout << temp << endl;
 	while (temp != 1) {
@@ -765,6 +790,7 @@ void ofApp::perfect_timing_gameover() {
 		else break;
 	}
 	maxheap[temp] = tempresult;
+	*/
 	int i;
 
 	// Top 5에 사용할 result들을 maxheap에서 pop하는 과정
@@ -772,6 +798,8 @@ void ofApp::perfect_timing_gameover() {
 		if (maxheap_len < 1) break; // 원소가 없다면 break
 		
 		// maxheap에서 원소 pop 과정
+		result_print[i] = pop_maxheap();
+		/*
 		result_print[i] = maxheap[1]; // pop할 element
 		result tempresult = maxheap[maxheap_len--]; // complete binary tree 기준으로 가장 낮은 level의 마지막 element
 		//cout << maxheap_len << endl;
@@ -788,6 +816,7 @@ void ofApp::perfect_timing_gameover() {
 			des *= 2;
 		}
 		maxheap[anc] = tempresult; // pop 후 heap 다시 정렬.
+		*/
 	}
 
 	// 만약 maxheap에 5개보다 적은 개수가 있었다면, draw 할 때를 생각해서 구별해준다.
@@ -802,21 +831,22 @@ void ofApp::perfect_timing_gameover() {
 	FILE* fp;
 	switch (perfect_timing) {
 	case 1:
-		fp = fopen("result_easy.txt", "w");
+		fp = fopen("data/result_easy.txt", "w");
 		break;
 	case 2:
-		fp = fopen("result_hard.txt", "w");
+		fp = fopen("data/result_hard.txt", "w");
 		break;
 	case 3:
-		fp = fopen("result_comsil.txt", "w");
+		fp = fopen("data/result_comsil.txt", "w");
 		break;
 	default:
-		fp = fopen("something_wrong.txt", "w");
+		fp = fopen("data/something_wrong.txt", "w");
 		// 게임 모드일 때 perfect_timing은 반드시 1, 2, 3중 하나이니 이 값들 중 하나가 아니라면 문제가 생겼다는 뜻이다.
 	}
 	fprintf(fp, "%d\n", i + maxheap_len); // 파일에 개수 저장
 	//cout << t + maxheap_len << endl;
 	
+	// 앞서 화면 출력 용으로 따로 저장해둔 (최대) 5개의 기록을 먼저 파일에 쓴다.
 	for (int j = 0; j < i; j++) {
 		fprintf(fp, "%d %d\n", result_print[j].perfect, result_print[j].good);
 		//cout << result_print[i].perfect << " " << result_print[i].good << endl;
@@ -827,7 +857,11 @@ void ofApp::perfect_timing_gameover() {
 		if (maxheap_len < 1) break; // 혹시나 원소가 없다면 break
 
 		// maxheap에서 원소 pop 과정, 반복적으로 pop을 해 fprintf를 하는 것으로 txt 파일에 정렬된 result들을 출력.
-		fprintf(fp, "%d %d\n", maxheap[1].perfect, maxheap[1].good); // pop할 element를 파일에 출력한다. 사실상 이 line에서 pop한 것이나 다름없다.
+		fprintf(fp, "%d %d\n", maxheap[1].perfect, maxheap[1].good); 
+		// pop할 element를 파일에 출력한다. binary complete tree를 이용했으니 1 인덱스에 가장 높은 result가 있으니
+		// 사실상 이 line에서 pop한 것이나 다름없다. 따라서 인덱스 참조를 통해 파일에 출력하고 pop 함수의 반환값은 무시했다.
+		pop_maxheap();
+		/*
 		result tempresult = maxheap[maxheap_len--]; // complete binary tree 기준으로 가장 낮은 level의 마지막 element
 		int anc = 1;
 		int des = 2;
@@ -842,6 +876,7 @@ void ofApp::perfect_timing_gameover() {
 			des *= 2;
 		}
 		maxheap[anc] = tempresult; // pop 후 heap 다시 정렬.
+		*/
 	}
 
 	fclose(fp); // FP 닫음
@@ -864,23 +899,6 @@ void ofApp::perfect_timing_gameover_draw() {
 	sprintf(str, "Press any key but ESC to continue");
 	myFont2.drawString(str, ofGetWidth() / 2 - 195, ofGetHeight() / 4 + 100);
 
-	/* 결과 목록도 인쇄?해서 보여주기*/
-	/*
-	ofFill();
-	ofSetColor(ofColor::white);
-	ofDrawRectangle(ofGetWidth() * 3 / 4 + 10, ofGetHeight() / 4, ofGetWidth() / 4 - 20, ofGetHeight() / 2);
-	ofNoFill();
-	ofSetColor(ofColor::black);
-	ofDrawRectangle(ofGetWidth() * 3 / 4 + 10, ofGetHeight() / 4, ofGetWidth() / 4 - 20, ofGetHeight() / 2);
-	
-	myFont2.drawString("Top 5 results", ofGetWidth() * 13 / 16, ofGetHeight() * 5 / 16);
-
-	for (int i = 0; i < 5; i++) {
-		if (result_print[i].perfect == -1) break;
-		sprintf(str, "%d) PERFECT: %d GOOD: %d", i + 1, result_print[i].perfect, result_print[i].good);
-		myFont2.drawString(str, ofGetWidth() * 3 / 4 + 20, ofGetHeight() * 5 / 16 + 60 * (i + 1));
-	}
-	*/
 	myFont2.drawString("-----Top 5 results-----", ofGetWidth() / 2 - 130, ofGetHeight() * 4 / 9);
 
 	for (int i = 0; i < 5; i++) {
@@ -928,7 +946,15 @@ void ofApp::update_note() {
 		temp->y += temp->speed;
 		temp->speed += temp->acce;
 		int ty;
-		if (temp->y > y1 + (temp->speed * 6)) { //y1이 현재 속력 기준으로 6프레임 후 이동거리보다 밑에 있을 시 그 노트는 사라진다.
+		if (temp->is_calculated == 1) {
+			delnote = temp;
+			create_note(); // 사라진 노트의 자리를 채울 새 노트를 만들어서 리스트에 연결
+			temp = temp->next;
+			if (delnote->prev) delnote->prev->next = temp;
+			temp->prev = delnote->prev;
+			delete delnote;
+		}
+		else if (temp->y > y1 + (temp->speed * 6)) { //y1이 현재 속력 기준으로 6프레임 후 이동거리보다 밑에 있을 시 그 노트는 사라진다.
 			delnote = temp;
 			if (temp->is_calculated == 0) num_of_fail++; // 무시된 음표의 경우 fail로 결정
 			create_note(); // 사라진 노트의 자리를 채울 새 노트를 만들어서 리스트에 연결
@@ -1010,4 +1036,38 @@ void ofApp::calculate_timing(int key_type, int key_num) {
 		if (!is_fail) num_of_fail++; // 입력과 현재 떨어지는 음표들이 맞지 않은 경우: fail++
 	}
 	else if (!is_gameover) perfect_timing_gameover(); // gameover 조건에 맞으면서 아직 함수가 호출되지 않은 경우 호출
+}
+
+void ofApp::push_maxheap(result tempresult) {
+	int temp = ++maxheap_len;
+	while (temp != 1) {
+		// result 간 대소 비교는, perfect의 대소 같다면 good의 대소 순으로 판별한다.
+		if (tempresult.perfect > maxheap[temp / 2].perfect || (tempresult.perfect == maxheap[temp / 2].perfect && tempresult.good > maxheap[temp / 2].good)) {
+			maxheap[temp] = maxheap[temp / 2];
+			temp /= 2;
+		}
+		else break;
+	}
+	maxheap[temp] = tempresult;
+}
+
+result ofApp::pop_maxheap() {
+	result returnresult = maxheap[1]; // pop할 element
+	result tempresult = maxheap[maxheap_len--]; // complete binary tree 기준으로 가장 낮은 level의 마지막 element
+	//cout << maxheap_len << endl;
+	int anc = 1;
+	int des = 2;
+	while (des <= maxheap_len) {
+		if (des < maxheap_len && (maxheap[des + 1].perfect > maxheap[des].perfect || (maxheap[des + 1].perfect == maxheap[des].perfect && maxheap[des + 1].good > maxheap[des].good))) des++;
+		// maxheap(max complete binary tree)에서 des와 des+1 중 우선순위가 더 큰 것을 골라야 하니, des+1의 우선순의가 더 높다면 des에 1 더해줌
+		if (tempresult.perfect > maxheap[des].perfect || (tempresult.perfect == maxheap[des].perfect && tempresult.good > maxheap[des].good)) break;
+		// tempresult가 자신 밑 level의 두 element보다 더 크므로, 이 경우 tempresult는 현재 anc 자리에 있으면 된다.
+
+		maxheap[anc] = maxheap[des]; // 그렇지 않다면 maxheap[des]을 한 단계 올려야 한다.
+		anc = des; // 다음 층 탐색
+		des *= 2;
+	}
+	maxheap[anc] = tempresult; // pop 후 heap 다시 정렬.
+
+	return returnresult;
 }
