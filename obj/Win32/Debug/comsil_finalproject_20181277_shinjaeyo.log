@@ -1,0 +1,64 @@
+﻿  main.cpp
+  ofApp.cpp
+  Info: Boost.Config is older than your compiler version - probably nothing bad will happen - but you may wish to look for an update Boost version.  Define BOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE to suppress this message.
+  Info: Boost.Config is older than your compiler version - probably nothing bad will happen - but you may wish to look for an update Boost version.  Define BOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE to suppress this message.
+c:\users\jaeyo shin\source\repos\of root\libs\openframeworks\utils\ofutils.h : warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오. (소스 파일 컴파일 중 src\main.cpp)
+c:\users\jaeyo shin\source\repos\of root\libs\openframeworks\utils\ofutils.h : warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오. (소스 파일 컴파일 중 src\ofApp.cpp)
+c:\users\jaeyo shin\source\repos\of root\libs\openframeworks\math\ofvec3f.h : warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오. (소스 파일 컴파일 중 src\main.cpp)
+c:\users\jaeyo shin\source\repos\of root\libs\openframeworks\math\ofvec3f.h : warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오. (소스 파일 컴파일 중 src\ofApp.cpp)
+c:\users\jaeyo shin\source\repos\of root\libs\openframeworks\math\ofvec2f.h : warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오. (소스 파일 컴파일 중 src\main.cpp)
+c:\users\jaeyo shin\source\repos\of root\libs\openframeworks\math\ofvec2f.h : warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오. (소스 파일 컴파일 중 src\ofApp.cpp)
+c:\users\jaeyo shin\source\repos\of root\apps\myapps\comsil_finalproject_20181277_shinjaeyo\src\ofapp.cpp(60): warning C4996: 'ofTrueTypeFont::loadFont': Use load instead
+  c:\users\jaeyo shin\source\repos\of root\libs\openframeworks\graphics\oftruetypefont.h(193): note: 'ofTrueTypeFont::loadFont' 선언을 참조하십시오.
+c:\users\jaeyo shin\source\repos\of root\apps\myapps\comsil_finalproject_20181277_shinjaeyo\src\ofapp.cpp(61): warning C4996: 'ofTrueTypeFont::loadFont': Use load instead
+  c:\users\jaeyo shin\source\repos\of root\libs\openframeworks\graphics\oftruetypefont.h(193): note: 'ofTrueTypeFont::loadFont' 선언을 참조하십시오.
+c:\users\jaeyo shin\source\repos\of root\apps\myapps\comsil_finalproject_20181277_shinjaeyo\src\ofapp.cpp(62): warning C4996: 'ofTrueTypeFont::loadFont': Use load instead
+  c:\users\jaeyo shin\source\repos\of root\libs\openframeworks\graphics\oftruetypefont.h(193): note: 'ofTrueTypeFont::loadFont' 선언을 참조하십시오.
+c:\users\jaeyo shin\source\repos\of root\apps\myapps\comsil_finalproject_20181277_shinjaeyo\src\ofapp.cpp(63): warning C4996: 'ofTrueTypeFont::loadFont': Use load instead
+  c:\users\jaeyo shin\source\repos\of root\libs\openframeworks\graphics\oftruetypefont.h(193): note: 'ofTrueTypeFont::loadFont' 선언을 참조하십시오.
+c:\users\jaeyo shin\source\repos\of root\apps\myapps\comsil_finalproject_20181277_shinjaeyo\src\ofapp.cpp(111): warning C4101: 'pos' :참조되지 않은 지역 변수입니다.
+c:\users\jaeyo shin\source\repos\of root\apps\myapps\comsil_finalproject_20181277_shinjaeyo\src\ofapp.cpp(582): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17134.0\ucrt\stdio.h(1774): note: 'sprintf' 선언을 참조하십시오.
+c:\users\jaeyo shin\source\repos\of root\apps\myapps\comsil_finalproject_20181277_shinjaeyo\src\ofapp.cpp(605): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17134.0\ucrt\stdio.h(1774): note: 'sprintf' 선언을 참조하십시오.
+c:\users\jaeyo shin\source\repos\of root\apps\myapps\comsil_finalproject_20181277_shinjaeyo\src\ofapp.cpp(622): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17134.0\ucrt\string.h(133): note: 'strcpy' 선언을 참조하십시오.
+c:\users\jaeyo shin\source\repos\of root\apps\myapps\comsil_finalproject_20181277_shinjaeyo\src\ofapp.cpp(623): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17134.0\ucrt\string.h(90): note: 'strcat' 선언을 참조하십시오.
+c:\users\jaeyo shin\source\repos\of root\apps\myapps\comsil_finalproject_20181277_shinjaeyo\src\ofapp.cpp(624): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17134.0\ucrt\string.h(90): note: 'strcat' 선언을 참조하십시오.
+c:\users\jaeyo shin\source\repos\of root\apps\myapps\comsil_finalproject_20181277_shinjaeyo\src\ofapp.cpp(632): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17134.0\ucrt\string.h(133): note: 'strcpy' 선언을 참조하십시오.
+c:\users\jaeyo shin\source\repos\of root\apps\myapps\comsil_finalproject_20181277_shinjaeyo\src\ofapp.cpp(633): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17134.0\ucrt\string.h(90): note: 'strcat' 선언을 참조하십시오.
+c:\users\jaeyo shin\source\repos\of root\apps\myapps\comsil_finalproject_20181277_shinjaeyo\src\ofapp.cpp(634): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17134.0\ucrt\string.h(90): note: 'strcat' 선언을 참조하십시오.
+c:\users\jaeyo shin\source\repos\of root\apps\myapps\comsil_finalproject_20181277_shinjaeyo\src\ofapp.cpp(671): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17134.0\ucrt\stdio.h(208): note: 'fopen' 선언을 참조하십시오.
+c:\users\jaeyo shin\source\repos\of root\apps\myapps\comsil_finalproject_20181277_shinjaeyo\src\ofapp.cpp(674): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17134.0\ucrt\stdio.h(208): note: 'fopen' 선언을 참조하십시오.
+c:\users\jaeyo shin\source\repos\of root\apps\myapps\comsil_finalproject_20181277_shinjaeyo\src\ofapp.cpp(677): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17134.0\ucrt\stdio.h(208): note: 'fopen' 선언을 참조하십시오.
+c:\users\jaeyo shin\source\repos\of root\apps\myapps\comsil_finalproject_20181277_shinjaeyo\src\ofapp.cpp(684): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17134.0\ucrt\stdio.h(1197): note: 'fscanf' 선언을 참조하십시오.
+c:\users\jaeyo shin\source\repos\of root\apps\myapps\comsil_finalproject_20181277_shinjaeyo\src\ofapp.cpp(690): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17134.0\ucrt\stdio.h(1197): note: 'fscanf' 선언을 참조하십시오.
+c:\users\jaeyo shin\source\repos\of root\apps\myapps\comsil_finalproject_20181277_shinjaeyo\src\ofapp.cpp(815): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17134.0\ucrt\stdio.h(208): note: 'fopen' 선언을 참조하십시오.
+c:\users\jaeyo shin\source\repos\of root\apps\myapps\comsil_finalproject_20181277_shinjaeyo\src\ofapp.cpp(818): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17134.0\ucrt\stdio.h(208): note: 'fopen' 선언을 참조하십시오.
+c:\users\jaeyo shin\source\repos\of root\apps\myapps\comsil_finalproject_20181277_shinjaeyo\src\ofapp.cpp(821): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17134.0\ucrt\stdio.h(208): note: 'fopen' 선언을 참조하십시오.
+c:\users\jaeyo shin\source\repos\of root\apps\myapps\comsil_finalproject_20181277_shinjaeyo\src\ofapp.cpp(824): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17134.0\ucrt\stdio.h(208): note: 'fopen' 선언을 참조하십시오.
+c:\users\jaeyo shin\source\repos\of root\apps\myapps\comsil_finalproject_20181277_shinjaeyo\src\ofapp.cpp(860): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17134.0\ucrt\stdio.h(1774): note: 'sprintf' 선언을 참조하십시오.
+c:\users\jaeyo shin\source\repos\of root\apps\myapps\comsil_finalproject_20181277_shinjaeyo\src\ofapp.cpp(862): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17134.0\ucrt\stdio.h(1774): note: 'sprintf' 선언을 참조하십시오.
+c:\users\jaeyo shin\source\repos\of root\apps\myapps\comsil_finalproject_20181277_shinjaeyo\src\ofapp.cpp(864): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17134.0\ucrt\stdio.h(1774): note: 'sprintf' 선언을 참조하십시오.
+c:\users\jaeyo shin\source\repos\of root\apps\myapps\comsil_finalproject_20181277_shinjaeyo\src\ofapp.cpp(871): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17134.0\ucrt\stdio.h(1774): note: 'sprintf' 선언을 참조하십시오.
+c:\users\jaeyo shin\source\repos\of root\apps\myapps\comsil_finalproject_20181277_shinjaeyo\src\ofapp.cpp(913): warning C4101: 'ty' :참조되지 않은 지역 변수입니다.
+     bin\comsil_finalproject_20181277_shinjaeyo_debug.lib 라이브러리 및 bin\comsil_finalproject_20181277_shinjaeyo_debug.exp 개체를 생성하고 있습니다.
+  comsil_finalproject_20181277_shinjaeyo.vcxproj -> C:\Users\Jaeyo Shin\source\repos\oF root\apps\myApps\comsil_finalproject_20181277_shinjaeyo\bin\comsil_finalproject_20181277_shinjaeyo_debug.exe
